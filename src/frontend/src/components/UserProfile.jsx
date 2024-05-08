@@ -1,17 +1,11 @@
 import { useState, useEffect } from "react";
 import UserInfo from "./UserInfo";
 import EditProfile from "./EditProfile";
-import { ethers } from "ethers";
-import { useAccount } from "wagmi";
 import { Modal } from "react-bootstrap";
-import {
-  getProviderAndChainId,
-  getZenowayContract,
-} from "../functions/contractFunctions";
 import { getUserAllDetails } from "../functions/userInteractionFunctions";
 import { truncateAddress } from "../functions/utils";
 
-function UserProfile() {
+function UserProfile({userAddress}) {
   const [userImage, setUserImage] = useState("");
   const [userName, setUserName] = useState("");
   const [userBio, setUserBio] = useState("");
@@ -21,18 +15,9 @@ function UserProfile() {
   const [followerUsers, setFollowerUsers] = useState([]);
   const [followingUsers, setFollowingUsers] = useState([]);
 
-  const { address: userAddress } = useAccount();
-
   async function handleReadDetails() {
-    const { provider, chainId } = await getProviderAndChainId();
-    const zenowayContract = await getZenowayContract(chainId);
-    const contract = new ethers.Contract(
-      zenowayContract.contractAddress,
-      zenowayContract.contractAbi,
-      provider
-    );
-
-    const userDetails = await getUserAllDetails(contract, userAddress);
+    const userDetails = await getUserAllDetails(userAddress);
+    
     setUserImage(userDetails.image);
     setUserName(userDetails.name);
     setUserBio(userDetails.bio);
