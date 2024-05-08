@@ -3,14 +3,13 @@ import Header from "../components/Header";
 import LeftSidebar from "../components/LeftSidebar";
 import NotificationBox from "../components/NotificationBox";
 import Suggestionbar from "../components/Suggestionbar";
-import { useAccount } from "wagmi";
 import {
   readNotifications,
   clearNotifications,
 } from "../functions/notificationFunctions";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
-function Alert() {
+function Alert({userAddress}) {
   const [notifications, setNotifications] = useState([]);
   const [notificationsCount, setNotificationsCount] = useState(0);
   const { address: userAddress } = useAccount();

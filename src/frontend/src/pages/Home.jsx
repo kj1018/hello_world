@@ -2,21 +2,21 @@ import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 
 function Home({userAddress}) {
-  // const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState([]);
 
-  // useEffect(() => {
-  //   async function fetchData() {
-  //     const followingPosts = await readFollowingPosts(userAddress);
-  //     setPosts(followingPosts);
-  //   }
+  useEffect(() => {
+    async function fetchData() {
+      const followingPosts = await readFollowingPosts(userAddress);
+      setPosts(followingPosts);
+    }
 
-  //   fetchData();
-  // }, [userAddress]);
+    fetchData();
+  }, [userAddress]);
 
   return (
     <>
       <Header />
-      {/* <div className="main">
+      <div className="main">
         <LeftSidebar />
         <div className="post-container container">
           {posts.length === 0 ? (
@@ -51,7 +51,7 @@ function Home({userAddress}) {
           )}
         </div>
         <Suggestionbar />
-      </div> */}
+      </div>
     </>
   );
 }

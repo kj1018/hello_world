@@ -1,4 +1,3 @@
-// Explore.js
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import LeftSidebar from "../components/LeftSidebar";
@@ -6,10 +5,8 @@ import Post from "../components/Post";
 import Suggestionbar from "../components/Suggestionbar";
 import { readPosts } from "../functions/readPostFunctions";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { useAccount } from "wagmi";
 
-function Explore() {
-  const { address: userAddress } = useAccount();
+function Explore({userAddress}) {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {

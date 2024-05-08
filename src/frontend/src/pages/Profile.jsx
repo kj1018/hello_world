@@ -1,16 +1,13 @@
-// Profile.js
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import LeftSidebar from "../components/LeftSidebar";
 import Post from "../components/Post";
-import { useAccount } from "wagmi";
 import { readUserPosts } from "../functions/readPostFunctions";
 import UserProfile from "../components/UserProfile";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
-function Profile() {
+function Profile({userAddress}) {
   const [posts, setPosts] = useState([]);
-  const { address: userAddress } = useAccount();
 
   useEffect(() => {
     async function fetchData() {
