@@ -1,4 +1,3 @@
-// UserInfo.js
 import React, { useState, useEffect } from "react";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import GroupRemoveIcon from "@mui/icons-material/GroupRemove";
@@ -11,7 +10,7 @@ import {
   unfollowUser,
 } from "../functions/userInteractionFunctions";
 
-function UserInfo(props) {
+function UserInfo({userAddress, address}) {
   const { address: userAddress } = useAccount();
   const [userImage, setUserImage] = useState("");
   const [userName, setUserName] = useState("");
@@ -19,23 +18,23 @@ function UserInfo(props) {
   const [reloadComponent, setReloadComponent] = useState(false);
 
   async function handleReadDetails() {
-    const userDetails = await getUserDetails(props.address);
+    const userDetails = await getUserDetails(address);
     setUserImage(userDetails.image);
     setUserName(userDetails.name);
   }
 
   async function handleFollowingStatus() {
-    const status = await getFollowingStatus(userAddress, props.address);
+    const status = await getFollowingStatus(userAddress, address);
     setFollowingStatus(status);
   }
 
   async function handleFollowUser() {
-    await followUser(props.address);
+    await followUser(address);
     setReloadComponent(true);
   }
 
   async function handleUnfollowUser() {
-    await unfollowUser(props.address);
+    await unfollowUser(address);
     setReloadComponent(true);
   }
 
@@ -61,14 +60,14 @@ function UserInfo(props) {
 
       <div className="rightsidebar-user-info-detail-content">
         <span className="post-header-username">
-          {userName || truncateAddress(props.address)}
+          {userName || truncateAddress(address)}
         </span>
         <span className="post-header-useraddress">
-          {truncateAddress(props.address)}
+          {truncateAddress(address)}
         </span>
       </div>
       <div className="rightsidebar-follow-icon">
-        {props.address === userAddress ? null : isFollowingStatus === true ? (
+        {address === userAddress ? null : isFollowingStatus === true ? (
           <span className="follow-button" onClick={handleUnfollowUser}>
             <GroupRemoveIcon />
           </span>

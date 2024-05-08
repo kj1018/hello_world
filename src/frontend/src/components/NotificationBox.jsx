@@ -2,15 +2,13 @@
 import React, { useState, useEffect } from "react";
 import { timeSince, truncateAddress } from "../functions/utils";
 import { getUserDetails } from "../functions/userInteractionFunctions";
-import { useAccount } from "wagmi";
 
-function NotificationBox(props) {
+function NotificationBox({userAddress, address, action, time}) {
   const [userImage, setUserImage] = useState("");
   const [userName, setUserName] = useState("");
-  const { address: userAddress } = useAccount();
 
   async function handleReadDetails() {
-    const userDetails = await getUserDetails(props.address);
+    const userDetails = await getUserDetails(address);
     setUserImage(userDetails.image);
     setUserName(userDetails.name);
   }
@@ -33,10 +31,10 @@ function NotificationBox(props) {
 
       <div className="notification-content-box">
         <span className="notification-content">
-          {userName || truncateAddress(props.address)}
-          {props.action === "like" ? " liked your post!" : " is following you!"}
+          {userName || truncateAddress(address)}
+          {action === "like" ? " liked your post!" : " is following you!"}
         </span>
-        <span>{timeSince(props.time)} ago</span>
+        <span>{timeSince(time)} ago</span>
       </div>
     </div>
   );

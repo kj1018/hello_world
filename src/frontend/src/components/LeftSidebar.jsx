@@ -1,19 +1,16 @@
-// LeftSidebar.js
 import React, { useState, useEffect } from "react";
 import HomeIcon from "@mui/icons-material/Home";
 import ExploreIcon from "@mui/icons-material/Public";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import { Link } from "react-router-dom";
-import { useAccount } from "wagmi";
 import { Modal } from "react-bootstrap";
 import PermMediaOutlinedIcon from "@mui/icons-material/PermMediaOutlined";
 import { truncateAddress } from "../functions/utils";
 import { getLeftSideBarDetails } from "../functions/userInteractionFunctions";
 import { uploadPost } from "../functions/uploadPostFunction";
 
-function LeftSidebar() {
-  const { address: userAddress } = useAccount();
+function LeftSidebar({userAddress}) {
   const [userImage, setUserImage] = useState("");
   const [userName, setUserName] = useState("");
   const [notificationsCount, setNotificationsCount] = useState(0);

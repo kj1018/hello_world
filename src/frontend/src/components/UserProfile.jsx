@@ -1,4 +1,3 @@
-// UserProfile.js
 import { useState, useEffect } from "react";
 import UserInfo from "./UserInfo";
 import EditProfile from "./EditProfile";
