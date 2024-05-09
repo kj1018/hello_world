@@ -1,4 +1,3 @@
-// userFunctions.js
 import {
   getProviderAndChainId,
   getZenowayContract,

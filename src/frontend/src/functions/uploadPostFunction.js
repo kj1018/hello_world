@@ -1,4 +1,3 @@
-// uploadPost.js
 import {
   getProviderAndChainId,
   getZenowayContract,

@@ -1,4 +1,3 @@
-// postFunctions.js
 import {
   getProviderAndChainId,
   getZenowayContract,

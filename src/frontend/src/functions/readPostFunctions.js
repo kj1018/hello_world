@@ -1,4 +1,3 @@
-// PostService.js
 import { ethers } from "ethers";
 import { getProviderAndChainId, getZenowayContract } from "./contractFunctions";
 

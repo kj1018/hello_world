@@ -1,4 +1,3 @@
-// uploadImage.js
 import axios from "axios";
 
 export async function uploadImageToIPFS(image) {
