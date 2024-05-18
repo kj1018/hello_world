@@ -287,6 +287,192 @@ actor zenoway {
         };
     };
 
+     public shared func getUsername(userAddress: Principal): async ?Text {
+        let optionalUser: ?User = users.get(userAddress);
+
+        switch (optionalUser) {
+            case (?user) {
+                return ?user.username;
+            };
+            case (null) {
+                return null; // User not found
+            };
+        };
+    };
+
+
+    public shared(msg) func setUsername(newUsername: Text): async Bool {
+        let optionalUser: ?User = users.get(msg.caller);
+
+        switch (optionalUser) {
+            case (?user) {
+                let updatedUser: User = { user with username = newUsername };
+                users.put(msg.caller, updatedUser);
+                return true; // Username updated successfully
+            };
+            case (null) {
+                return false; // User not found
+            };
+        };
+    };
+
+
+    public shared func getUserProfileImage(userAddress: Principal): async ?Text {
+        let optionalUser: ?User = users.get(userAddress);
+
+        switch (optionalUser) {
+            case (?user) {
+                return ?user.profileImageAddress;
+            };
+            case (null) {
+                return null; // User not found
+            };
+        };
+    };
+
+    public shared(msg) func setUserProfileImage(newProfileImageAddress: Text): async Bool {
+        let optionalUser: ?User = users.get(msg.caller);
+
+        switch (optionalUser) {
+            case (?user) {
+                let updatedUser: User = { user with profileImageAddress = newProfileImageAddress };
+                users.put(msg.caller, updatedUser);
+                return true; 
+            };
+            case (null) {
+                return false; // User not found
+            };
+        }
+    };
+
+    public shared func getUserBio(userAddress: Principal): async ?Text {
+        let optionalUser: ?User = users.get(userAddress);
+
+        switch (optionalUser) {
+            case (?user) {
+                return ?user.bio;
+            };
+            case (null) {
+                return null; // User not found
+            };
+        };
+    };
+
+    public shared(msg) func setUserBio(newBio: Text): async Bool {
+        let optionalUser: ?User = users.get(msg.caller);
+
+        switch (optionalUser) {
+            case (?user) {
+                let updatedUser: User = { user with bio = newBio };
+                users.put(msg.caller, updatedUser);
+                return true; // Bio updated successfully
+            };
+            case (null) {
+                return false; // User not found
+            };
+        };
+    };
+
+
+    public shared func getUserPostsCount(userAddress: Principal): async ?Nat {
+        let optionalUser: ?User = users.get(userAddress);
+
+        switch (optionalUser) {
+            case (?user) {
+                return ?user.postCount;
+            };
+            case (null) {
+                return null; // User not found
+            };
+        };
+    };
+
+    public shared func getFollowingsCount(userAddress: Principal): async ?Nat {
+        let optionalUser: ?User = users.get(userAddress);
+
+        switch (optionalUser) {
+            case (?user) {
+                return ?List.size(user.following);
+            };
+            case (null) {
+                return null; // User not found
+            };
+        };
+    };
+
+    public shared func getFollowersCount(userAddress: Principal): async ?Nat {
+        let optionalUser: ?User = users.get(userAddress);
+
+        switch (optionalUser) {
+            case (?user) {
+                return ?List.size(user.followers);
+            };
+            case (null) {
+                return null; // User not found
+            };
+        };
+    };
+
+
+    public shared func getPostLikes(postId: Nat): async ?Nat {
+        let optionalPost: ?Post = List.find<Post>(posts, func(post: Post): Bool {
+            post.postId == postId
+        });
+
+        switch (optionalPost) {
+            case (?post) {
+                return ?List.size(post.likes);
+            };
+            case (null) {
+                return null; // Post not found
+            };
+        };
+    };
+
+    public shared func getUserNotifications(userAddress: Principal): async ?[Notification] {
+        let optionalUser: ?User = users.get(userAddress);
+
+        switch (optionalUser) {
+            case (?user) {
+                return ?List.toArray(user.userNotifications);
+            };
+            case (null) {
+                return null; // User not found
+            };
+        };
+    };
+
+    public shared(msg) func clearNotifications(): async Bool {
+        let optionalUser: ?User = users.get(msg.caller);
+
+        switch (optionalUser) {
+            case (?user) {
+                let updatedUser: User = { user with userNotifications = List.nil<Notification>() };
+                users.put(msg.caller, updatedUser);
+                return true; // Notifications cleared successfully
+            };
+            case (null) {
+                return false; // User not found
+            };
+        };
+    };
+
+    public shared func getNotificationCount(userAddress: Principal): async ?Nat {
+        let optionalUser: ?User = users.get(userAddress);
+
+        switch (optionalUser) {
+            case (?user) {
+                return ?List.size(user.userNotifications);
+            };
+            case (null) {
+                return null; // User not found
+            };
+        };
+    };
+
+
+
+
 
     // // Follow User
     // public func followUser(userToFollow: Principal) {
