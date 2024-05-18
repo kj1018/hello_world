@@ -6,7 +6,7 @@ import Time "mo:base/Time";
 import Debug "mo:base/Debug";
 
 actor zenoway {
-    type User = {
+    public type User = {
         address: Text;
         username: Text;
         profileImageAddress: Text;
@@ -17,7 +17,7 @@ actor zenoway {
         userNotifications: List.List<Notification>;
     };
 
-    type Post = {
+    public type Post = {
         postId: Nat;
         creatorAddress: Principal;
         imageAddress: Text;
@@ -26,7 +26,7 @@ actor zenoway {
         likes: List.List<Principal>;
     };
 
-    type Notification = {
+    public type Notification = {
         address: Principal;
         action: Text;
         time: Time.Time;
@@ -35,27 +35,15 @@ actor zenoway {
     var posts: List.List<Post> = List.nil<Post>();
     var users: HashMap.HashMap<Principal, User> = HashMap.HashMap<Principal, User>(1_024, Principal.equal, Principal.hash);
 
-    // public func addUser(userAddress: Principal) {
-    // if (users.get(userAddress) == null) {
-    //         var newUser: User = {
-    //             address = Principal.toText(userAddress);
-    //             username = "";
-    //             profileImageAddress = "";
-    //             bio = "";
-    //             followers = List.nil<Principal>();
-    //             following = List.nil<Principal>();
-    //             postCount = 0;
-    //             userNotifications = List.nil<Notification>();
-    //         };
-
-    //         users.put(userAddress, newUser);
-    //     }
-    // };
+    public shared(msg) func hello(name: Text): async Text{
+        Debug.print(name);
+        return (name # " " #Principal.toText(msg.caller));
+    };
 
 
     // Create Post
     public shared(msg) func createPost(imageAddress: Text, postCaption: Text) {
-        if(imageAddress.size()<=0 or postCaption.size()<=0){
+        if (imageAddress.size() <= 0 or postCaption.size() <= 0) {
             assert(false);
         };
 
@@ -72,7 +60,7 @@ actor zenoway {
         posts := List.push(newPost, posts);
 
         if (users.get(msg.caller) == null) {
-            var newUser: User = {
+            let newUser: User = {
                 address = Principal.toText(msg.caller);
                 username = "";
                 profileImageAddress = "";
@@ -84,23 +72,30 @@ actor zenoway {
             };
 
             users.put(msg.caller, newUser);
-        }else{
-            Debug.print(debug_show(users.get(msg.caller)));
-            var u = users.get(msg.caller);
+        } else {
+            let optionalUser: ?User = users.get(msg.caller);
 
+            let user: User = switch (optionalUser) {
+                case (?u) { u };
+                case (null) {
+                    {
+                        address = "";
+                        username = "";
+                        profileImageAddress = "";
+                        bio = "";
+                        followers = List.nil<Principal>();
+                        following = List.nil<Principal>();
+                        postCount = 0;
+                        userNotifications = List.nil<Notification>();
+                    }
+                }
+            };
 
-            // var newUser: User = {
-            //     address = Principal.toText(msg.caller);
-            //     username = u.username;
-            //     profileImageAddress = u.imageAddress;
-            //     bio = u.bio;
-            //     followers = u.followers;
-            //     following = u.following;
-            //     postCount = 1;
-            //     userNotifications = u.userNotifications;
-            // };
+            let updatedUser: User = { user with postCount = user.postCount + 1 };
 
-            // users.put(msg.caller, newUser);
+            users.put(msg.caller, updatedUser);
+
+            Debug.print(debug_show(updatedUser));
         };
     };
 
@@ -265,3 +260,6 @@ actor zenoway {
     //     return post.likes;
     // };
 }
+
+
+// https://curly-palm-tree-7jg5qr9vv943qpx-4943.app.github.dev/?canisterId=be2us-64aaa-aaaaa-qaabq-cai&id=bw4dl-smaaa-aaaaa-qaacq-cai
