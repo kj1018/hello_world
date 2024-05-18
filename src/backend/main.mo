@@ -4,6 +4,7 @@ import HashMap "mo:base/HashMap";
 import Nat "mo:base/Nat";
 import Time "mo:base/Time";
 import Debug "mo:base/Debug";
+import Option "mo:base/Option";
 
 actor zenoway {
     public type User = {
@@ -42,9 +43,9 @@ actor zenoway {
 
 
     // Create Post
-    public shared(msg) func createPost(imageAddress: Text, postCaption: Text) {
+    public shared(msg) func createPost(imageAddress: Text, postCaption: Text): async Nat{
         if (imageAddress.size() <= 0 or postCaption.size() <= 0) {
-            assert(false);
+            assert(true);
         };
 
         let postId = List.size(posts);
@@ -97,41 +98,195 @@ actor zenoway {
 
             Debug.print(debug_show(updatedUser));
         };
+
+        return 200;
     };
 
-    // // Like Post
-    // public func likePost(postId: Nat) {
-    //     assert (postId < List.size(posts), "Post does not exist");
-    //     assert ((hasLiked(postId, Principal.fromActor(this))==false), "Already Liked");
-    //     var p = List.nth(posts, postId);
-    //     p.likes := List.append(p.likes, List.singleton(Principal.fromActor(this)));
-    //     posts := List.replace<Nat, Post>(posts, postId, p);
-    //     if (p.creatorAddress != Principal.fromActor(this)) {
-    //         var creatorUser = users[p.creatorAddress];
-    //         let newNotification: Notification = {
-    //             address = Principal.fromActor(this);
-    //             action = "like";
-    //             time = Time.now();
-    //         };
-    //         creatorUser.userNotifications := List.append(creatorUser.userNotifications, List.singleton(newNotification));
-    //         users[p.creatorAddress] := creatorUser;
-    //     }
-    // };
+    // Check if user has liked a post
+    private func hasLiked(postId: Nat, address: Principal): Bool {
+        let optionalPost: ?Post = List.find<Post>(posts, func(post: Post): Bool {
+            post.postId == postId
+        });
 
-    // // Check if user has liked a post
-    // private func hasLiked(postId: Nat, address: Principal): Bool {
-    //     let p = List.nth(posts, postId);
-    //     return List.member(p.likes, address, Principal.equal);
-    // };
+        switch (optionalPost) {
+            case (?post) {
+                return List.foldLeft<Principal, Bool>(post.likes, false, func(acc: Bool, liker: Principal): Bool {
+                    acc or (liker == address)
+                });
+            };
+            case (null) {
+                return false;
+            };
+        }
+    };
 
-    //     // Unlike Post
-    // public func unlikePost(postId: Nat) {
-    //     assert (postId < List.size(posts), "Post does not exist");
-    //     var p = List.nth(posts, postId);
-    //     let filteredLikes = List.filter(p.likes, func(x) { x != Principal.fromActor(this) });
-    //     p.likes := filteredLikes;
-    //     posts := List.replace<Nat, Post>(posts, postId, p);
-    // };
+    // Like Post
+    public shared(msg) func likePost(postId: Nat): async Nat {
+        if (hasLiked(postId, msg.caller)) {
+            let optionalPost: ?Post = List.find<Post>(posts, func(post: Post): Bool {
+                post.postId == postId
+            });
+
+            return switch (optionalPost) {
+                case (?post) { List.size(post.likes) };
+                case (null) { 0 }; 
+            };
+        };
+
+        posts := List.map<Post, Post>(posts, func(post: Post): Post {
+            if (post.postId == postId) {
+                let updatedLikes = List.push(msg.caller, post.likes);
+                return { post with likes = updatedLikes };
+            };
+            post
+        });
+
+        let updatedPost: ?Post = List.find<Post>(posts, func(post: Post): Bool {
+            post.postId == postId
+        });
+
+        switch (updatedPost) {
+            case (?post) { return List.size(post.likes); };
+            case (null) { return 0; }; 
+        }
+    };
+
+    
+
+    // Unlike Post
+    public shared(msg) func unlikePost(postId: Nat) {
+        if (hasLiked(postId, msg.caller) == true) {
+            return; // User has not liked the post, nothing to do
+        };
+
+        posts := List.map<Post, Post>(posts, func(post: Post): Post {
+            if (post.postId == postId) {
+                let updatedLikes = List.filter<Principal>(post.likes, func(liker: Principal): Bool {
+                    liker != msg.caller
+                });
+                return { post with likes = updatedLikes };
+            };
+            post
+        });
+    };
+
+    private func isFollowing(follower: Principal, followee: Principal): Bool {
+        let optionalUser: ?User = users.get(follower);
+        switch (optionalUser) {
+            case (?user) {
+                return Option.isSome(List.find<Principal>(user.following, func(u: Principal): Bool {
+                    u == followee
+                }));
+            };
+            case (null) { return false; };
+        };
+    };
+
+    public shared(msg) func followUser(userToFollow: Principal) {
+        if (msg.caller == userToFollow) {
+            return;
+        };
+
+        if (isFollowing(msg.caller, userToFollow)) {
+            return;
+        };
+
+        let optionalFollower: ?User = users.get(msg.caller);
+        let optionalFollowee: ?User = users.get(userToFollow);
+
+        switch (optionalFollower, optionalFollowee) {
+            case (?follower, ?followee) {
+                let updatedFollower: User = {
+                    follower with
+                    following = List.push(userToFollow, follower.following)
+                };
+
+                let updatedFollowee: User = {
+                    followee with
+                    followers = List.push(msg.caller, followee.followers)
+                };
+
+                users.put(msg.caller, updatedFollower);
+                users.put(userToFollow, updatedFollowee);
+            };
+            case (null, _) { 
+                Debug.print("Follower not found");
+            };
+            case (_, null) { 
+                Debug.print("Followee not found");
+            };
+        }
+    };
+
+    public shared(msg) func unfollowUser(userToUnfollow: Principal) {
+        if (msg.caller == userToUnfollow) {
+            return; // Users cannot unfollow themselves
+        };
+
+        if (isFollowing(msg.caller, userToUnfollow) == false) {
+            return; // User is not following the target user
+        };
+
+        let optionalFollower: ?User = users.get(msg.caller);
+        let optionalFollowee: ?User = users.get(userToUnfollow);
+
+        switch (optionalFollower, optionalFollowee) {
+            case (?follower, ?followee) {
+                // Update the follower's following list
+                let updatedFollowing = List.filter<Principal>(follower.following, func(u: Principal): Bool {
+                    u != userToUnfollow
+                });
+                let updatedFollower: User = { follower with following = updatedFollowing };
+
+                // Update the followee's followers list
+                let updatedFollowers = List.filter<Principal>(followee.followers, func(u: Principal): Bool {
+                    u != msg.caller
+                });
+                let updatedFollowee: User = { followee with followers = updatedFollowers };
+
+                // Store the updated users back in the map
+                users.put(msg.caller, updatedFollower);
+                users.put(userToUnfollow, updatedFollowee);
+            };
+            case (null, _) { // Follower not found
+                Debug.print("Follower not found");
+            };
+            case (_, null) { // Followee not found
+                Debug.print("Followee not found");
+            };
+        };
+    };
+
+    public shared func readAllPosts(): async [Post] {
+        return List.toArray(posts);
+    };
+
+    public shared func readUserPosts(userAddress: Principal): async [Post] {
+        let userPosts = List.filter<Post>(posts, func(post: Post): Bool {
+            post.creatorAddress == userAddress
+        });
+        return List.toArray(userPosts);
+    };
+
+    public shared(msg) func readFollowingPosts(): async [Post] {
+        let optionalUser: ?User = users.get(msg.caller);
+
+        switch (optionalUser) {
+            case (?user) {
+                let followingList = user.following;
+                let followingPosts = List.filter<Post>(posts, func(post: Post): Bool {
+                    Option.isSome(List.find<Principal>(followingList, func(followee: Principal): Bool {
+                        followee == post.creatorAddress
+                    }))
+                });
+                return List.toArray(followingPosts);
+            };
+            case (null) {
+                return []; // Return an empty array if the user is not found
+            };
+        };
+    };
+
 
     // // Follow User
     // public func followUser(userToFollow: Principal) {
